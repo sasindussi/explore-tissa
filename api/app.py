@@ -6,13 +6,8 @@ app = Flask(__name__,
             template_folder='../templates', 
             static_folder='../static')
 
-database_url = os.environ.get('DATABASE_URL')
 
-if database_url:
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:sas.2019.2022ok@db.dcwjtblrbybdccvdwajp.supabase.co:5432/postgres'
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:sas.2019.2022ok@db.dcwjtblrbybdccvdwajp.supabase.co:5432/postgres'
 db = SQLAlchemy(app)
 # Database Models
 class User(db.Model):
