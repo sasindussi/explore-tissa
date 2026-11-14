@@ -2,10 +2,13 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 import os
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'explore_tissa_secret_key_2026'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tissa.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+if os.environ.get('VERCEL'):
+    db_path = '/tmp/tissa.db'
+else:
+    db_path = 'tissa.db'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 db = SQLAlchemy(app)
 
