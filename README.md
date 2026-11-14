@@ -15,4 +15,4 @@ A responsive web application designed to explore and showcase the rich heritage,
 To view or run this project locally:
 
 1. **Clone the repository:**
- git clone https://github.com/sasindussi/explore-tiss.git
+ git clone https://github.com/sasindussi/Explore-tiss.git
