@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <!-- Hero Section -->
+    <div class="p-5 mb-5 hero-section shadow-lg border-0 position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(27, 42, 71, 0.95) 0%, rgba(15, 23, 42, 0.05) 100%); border-radius: 20px; color: #ffffff;">
+        <div class="container-fluid py-4 position-relative" style="z-index: 2;">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge mb-3 px-3 py-2" style="background-color: rgba(212, 175, 55, 0.2); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.4); font-weight: 600; border-radius: 30px;">
+                         Welcome to Tissamaharama
+                    </span>
+                    <h1 class="display-4 fw-bold mb-3" style="letter-spacing: -0.5px; color: #ffffff;">
+                        Explore <span style="color: #d4af37;">Tissa</span>
+                    </h1>
+                    <p class="fs-4 fw-semibold mb-3 text-light" style="opacity: 0.9;">
+                        A One-Day Local Tourist Visit Planning Web Application
+                    </p>
+                    <p class="fs-6 mb-4 text-secondary" style="max-width: 600px; color: #94a3b8 !important; line-height: 1.6;">
+                        Discover ancient sacred temples, scenic wildlife reservoirs, and historical landmarks located within 25 km of your current location with smart itinerary scheduling.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ url_for('attractions') }}" class="btn btn-lg px-4 py-3 fw-bold shadow" style="background-color: #d4af37; color: #0f172a; border: none; border-radius: 30px; transition: all 0.3s ease;">
+                            ✨ Explore Attractions
+                        </a>
+                        <a href="{{ url_for('planner') }}" class="btn btn-outline-light btn-lg px-4 py-3 fw-bold shadow-sm" style="border-radius: 30px; border: 2px solid rgba(255, 255, 255, 0.3); transition: all 0.3s ease;">
+                            🗺️ Plan One-Day Trip
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Section -->
+    <div class="row my-4">
+        <div class="col-12">
+            <h3 class="fw-bold mb-3 text-dark">Interactive Attraction Map</h3>
+            <div id="map" style="height: 450px;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var map = L.map('map').setView([6.2861, 81.2847], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var attractions = [
+        {% for a in attractions %}
+        {
+            name: "{{ a.name }}",
+            category: "{{ a.category }}",
+            lat: {{ a.latitude }},
+            lng: {{ a.longitude }},
+            url: "{{ url_for('attraction_detail', id=a.id) }}"
+        },
+        {% endfor %}
+    ];
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        var R = 6371;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(1);
+    }
+
+    function loadMapPins(centerLat, centerLng, showUserPin = false) {
+        if (showUserPin) {
+            var userMarker = L.marker([centerLat, centerLng]).addTo(map);
+            userMarker.bindPopup("<b>Your Current Location</b>").openPopup();
+            map.setView([centerLat, centerLng], 12);
+        }
+
+        attractions.forEach(function(item) {
+            var dist = calculateDistance(centerLat, centerLng, item.lat, item.lng);
+            var marker = L.marker([item.lat, item.lng]).addTo(map);
+            marker.bindPopup(`<b>${item.name}</b><br>Category: ${item.category}<br><b>Distance: ${dist} km</b><br><a href="${item.url}">View Details</a>`);
+        });
+    }
+
+    var defaultLat = 6.2861;
+    var defaultLng = 81.2847;
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            loadMapPins(position.coords.latitude, position.coords.longitude, true);
+        }, function(error) {
+            loadMapPins(defaultLat, defaultLng, false);
+        }, { timeout: 7000 });
+    } else {
+        loadMapPins(defaultLat, defaultLng, false);
+    }
+</script>
+{% endblock %}

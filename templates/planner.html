@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">One-Day Trip Planner & Time Slot Analysis</h2>
+            <p class="text-muted">Select places you want to visit. Yala starts at 6:00 AM, with precise custom durations and 30-minute travel gaps.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <h4 class="fw-bold mb-3">Available Places</h4>
+            <div class="list-group shadow-sm" id="places-list">
+                {% for a in attractions %}
+                <label class="list-group-item d-flex align-items-center p-3 place-item" data-lat="{{ a.latitude }}" data-lng="{{ a.longitude }}" data-name="{{ a.name }}" data-category="{{ a.category }}" data-default-distance="{{ a.distance_km }}">
+                    <input class="form-check-input me-3 place-checkbox" type="checkbox" value="{{ a.name }}" data-name="{{ a.name }}" data-category="{{ a.category }}" data-lat="{{ a.latitude }}" data-lng="{{ a.longitude }}" data-default-distance="{{ a.distance_km }}" onchange="updateItinerary()">
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ a.name }}</h6>
+                        <small class="text-muted">{{ a.category }} | Distance from you: <span class="place-dist">{{ a.distance_km }}</span> km</small>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;" id="printable-itinerary">
+                <div class="card-body">
+                    <h4 class="fw-bold mb-3">Optimized Itinerary & Schedule</h4>
+                    <ul id="selected-places" class="list-group mb-3">
+                        <li class="list-group-item text-muted">No places selected yet. Check items on the left!</li>
+                    </ul>
+                    
+                    {% if session.get('user_logged_in') %}
+                        <!-- Eka mono koumpi pou kanei Save sti vasi kai Print/PDF tautoxrona -->
+                        <button class="btn btn-primary w-100 mb-2" onclick="saveAndPrintItinerary()">Save & Print Itinerary</button>
+                        <a href="{{ url_for('my_itineraries') }}" class="btn btn-outline-secondary w-100">View My Saved Itineraries</a>
+                    {% else %}
+                        <div class="alert alert-warning text-center small mb-0">
+                            Please <a href="{{ url_for('user_login') }}">Login</a> to save or print your itinerary!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printable-itinerary, #printable-itinerary * {
+        visibility: visible;
+    }
+    #printable-itinerary {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+    }
+    button, a, nav, footer, .col-md-7, .row.mb-4 {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        var R = 6371;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(1);
+    }
+
+    function getPlaceDetails(name) {
+        let lowerName = name.toLowerCase();
+        if (lowerName.includes('yala')) {
+            return { durationHours: 3.0, durationText: '3 Hours' };
+        } else if (lowerName.includes('wirawila')) {
+            return { durationHours: 1.0, durationText: '1 Hour' };
+        } else if (lowerName.includes('debarawewa') || lowerName.includes('menik')) {
+            return { durationHours: 0.5, durationText: '30 Mins' };
+        } else if (lowerName.includes('yatala')) {
+            return { durationHours: 0.5, durationText: '30 Mins' };
+        } else if (lowerName.includes('refresh') || lowerName.includes('restaurant')) {
+            return { durationHours: 0.75, durationText: '45 Mins' };
+        } else if (lowerName.includes('kataragama') || lowerName.includes('karagama')) {
+            return { durationHours: 1.0, durationText: '1 Hour' };
+        } else if (lowerName.includes('tissamaharama') && lowerName.includes('viharaya')) {
+            return { durationHours: 1.0, durationText: '1 Hour' };
+        } else if (lowerName.includes('tissa wewa')) {
+            return { durationHours: 1.0, durationText: '1 Hour' };
+        } else if (lowerName.includes('sandagiri')) {
+            return { durationHours: 0.5, durationText: '30 Mins' };
+        } else if (lowerName.includes('kirinda')) {
+            return { durationHours: 1.0, durationText: '1 Hour' };
+        } else {
+            return { durationHours: 1.0, durationText: '1 Hour' };
+        }
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+
+            document.querySelectorAll('.place-item').forEach(function(item) {
+                var lat = parseFloat(item.dataset.lat);
+                var lng = parseFloat(item.dataset.lng);
+                var dist = parseFloat(calculateDistance(userLat, userLng, lat, lng));
+                
+                item.querySelector('.place-dist').textContent = dist;
+                var checkbox = item.querySelector('.place-checkbox');
+                checkbox.dataset.currentDistance = dist;
+            });
+            updateItinerary();
+        }, function(error) {
+            document.querySelectorAll('.place-checkbox').forEach(function(cb) {
+                cb.dataset.currentDistance = parseFloat(cb.dataset.defaultDistance);
+            });
+        });
+    } else {
+        document.querySelectorAll('.place-checkbox').forEach(function(cb) {
+            cb.dataset.currentDistance = parseFloat(cb.dataset.defaultDistance);
+        });
+    }
+
+    function updateItinerary() {
+        const checkboxes = document.querySelectorAll('.place-checkbox:checked');
+        const list = document.getElementById('selected-places');
+        list.innerHTML = '';
+
+        if (checkboxes.length === 0) {
+            list.innerHTML = '<li class="list-group-item text-muted">No places selected yet. Check items on the left!</li>';
+            return;
+        }
+
+        let selectedItems = [];
+        checkboxes.forEach((cb) => {
+            const dist = parseFloat(cb.dataset.currentDistance || cb.dataset.defaultDistance);
+            const details = getPlaceDetails(cb.dataset.name);
+            selectedItems.push({
+                name: cb.value,
+                category: cb.dataset.category,
+                distance: dist,
+                details: details,
+                isYala: cb.dataset.name.toLowerCase().includes('yala')
+            });
+        });
+
+        selectedItems.sort((a, b) => {
+            if (a.isYala) return -1;
+            if (b.isYala) return 1;
+            return a.distance - b.distance;
+        });
+
+        let currentDecimalTime = 6.0;
+
+        let formatDecimalTime = (decimal) => {
+            let h = Math.floor(decimal);
+            let m = Math.round((decimal - h) * 60);
+            if (m >= 60) { h += 1; m = 0; }
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            let formattedH = h % 12 || 12;
+            let formattedM = m < 10 ? '0' + m : m;
+            return `${formattedH}:${formattedM} ${ampm}`;
+        };
+
+        selectedItems.forEach((item, index) => {
+            let startDec = currentDecimalTime;
+            let duration = item.details.durationHours;
+            let endDec = startDec + duration;
+
+            let startTimeStr = formatDecimalTime(startDec);
+            let endTimeStr = formatDecimalTime(endDec);
+
+            currentDecimalTime = endDec + (30 / 60);
+
+            const li = document.createElement('li');
+            li.className = 'list-group-item p-3';
+            
+            let badgeHtml = index === 0 ? '<span class="badge bg-success mb-1">Recommended 1st Visit 🌟</span><br>' : '';
+            
+            li.innerHTML = `
+                ${badgeHtml}
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold"><strong>${index + 1}.</strong> ${item.name}</span>
+                    <span class="badge bg-secondary">${item.distance} km</span>
+                </div>
+                <small class="text-muted d-block mt-1">🕒 Stay: <strong>${item.details.durationText}</strong></small>
+                <small class="text-primary d-block">⏰ Time Slot: <strong>${startTimeStr} - ${endTimeStr}</strong></small>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function saveAndPrintItinerary() {
+        const checkboxes = document.querySelectorAll('.place-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('Please select at least one place!');
+            return;
+        }
+
+        const formData = new FormData();
+        checkboxes.forEach((cb) => {
+            formData.append('places', cb.value);
+        });
+
+        fetch('/save-itinerary', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                window.print();
+            } else {
+                alert('An error occurred while saving.');
+            }
+        });
+    }
+</script>
+{% endblock %}

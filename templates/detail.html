@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('attractions') }}">Attractions</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ attraction.name }}</li>
+                </ol>
+            </nav>
+
+            <div class="card shadow-sm border-0">
+                <img src="{{ attraction.image_url }}" class="card-img-top" alt="{{ attraction.name }}" style="height: 350px; object-fit: cover;">
+                <div class="card-body p-4 attraction-detail-card" data-lat="{{ attraction.latitude }}" data-lng="{{ attraction.longitude }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-primary">{{ attraction.category }}</span>
+                        <span class="badge {% if attraction.status == 'Open' %}bg-success{% else %}bg-danger{% endif %}">Status: {{ attraction.status }}</span>
+                    </div>
+                    <h1 class="fw-bold mb-3">{{ attraction.name }}</h1>
+                    <p class="lead text-secondary">{{ attraction.description }}</p>
+
+                    {% if attraction.warning %}
+                    <div class="alert alert-warning border-warning mb-4">
+                        <h6 class="fw-bold mb-1">⚠️ Travel Warning / Operational Notice</h6>
+                        <p class="mb-0">{{ attraction.warning }}</p>
+                    </div>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded border">
+                                <h6 class="fw-bold text-dark mb-1">🕒 Opening Hours</h6>
+                                <p class="mb-0 text-muted">{{ attraction.opening_hours }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded border">
+                                <h6 class="fw-bold text-dark mb-1">📍 Distance from Your Location</h6>
+                                <p class="mb-0 text-muted"><span id="detail-dist">{{ attraction.distance_km }}</span> km</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded border">
+                                <h6 class="fw-bold text-dark mb-1">🌟 Best Time to Visit</h6>
+                                <p class="mb-0 text-muted">{{ attraction.best_time }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded border">
+                                <h6 class="fw-bold text-dark mb-1">💰 Estimated Entry Fee / Budget</h6>
+                                <p class="mb-0 text-muted">{{ attraction.entry_fee }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-3 bg-warning bg-opacity-10 border border-warning rounded">
+                        <h6 class="fw-bold text-dark mb-1">💡 Travel Tips</h6>
+                        <p class="mb-0 text-secondary">{{ attraction.travel_tips }}</p>
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="{{ url_for('attractions') }}" class="btn btn-secondary">Back to List</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        var R = 6371;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(1);
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+
+            var card = document.querySelector('.attraction-detail-card');
+            var lat = parseFloat(card.dataset.lat);
+            var lng = parseFloat(card.dataset.lng);
+            var dist = calculateDistance(userLat, userLng, lat, lng);
+
+            document.getElementById('detail-dist').textContent = dist;
+        }, function(error) {
+            console.warn("Geolocation denied or unavailable.");
+        }, { timeout: 7000 });
+    }
+</script>
+{% endblock %}

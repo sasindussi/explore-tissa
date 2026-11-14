@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">Tourist Attractions Directory</h2>
+            <p class="text-muted">Browse and filter local attractions within 25 km from your current location.</p>
+        </div>
+        
+        <div class="col-md-4 text-md-end">
+            <form method="GET" action="{{ url_for('attractions') }}" class="d-inline-flex">
+                <select name="category" class="form-select me-2" onchange="this.form.submit()">
+    <option value="">All Categories</option>
+    {% for cat in categories %}
+        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+    {% endfor %}
+</select>
+            </form>
+        </div>
+    </div>
+
+    
+    <div class="row">
+        {% for a in attractions %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-0 attraction-card" data-lat="{{ a.latitude }}" data-lng="{{ a.longitude }}">
+                <img src="{{ a.image_url }}" class="card-img-top" alt="{{ a.name }}" style="height: 200px; object-fit: cover;">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-secondary">{{ a.category }}</span>
+                        <span class="badge {% if a.status == 'Open' %}bg-success{% else %}bg-danger{% endif %}">{{ a.status }}</span>
+                    </div>
+                    <h5 class="card-title fw-bold">{{ a.name }}</h5>
+                    <p class="card-text text-muted small">{{ a.description[:90] }}...</p>
+                    
+                    {% if a.warning %}
+                    <div class="alert alert-warning p-2 small mb-2">
+                        <strong>⚠️ Notice:</strong> {{ a.warning }}
+                    </div>
+                    {% endif %}
+
+                    <ul class="list-unstyled small text-secondary mt-auto mb-3">
+                        <li><strong>Distance:</strong> <span class="card-dist">{{ a.distance_km }}</span> km</li>
+                        <li><strong>Hours:</strong> {{ a.opening_hours }}</li>
+                    </ul>
+                    <a href="{{ url_for('attraction_detail', id=a.id) }}" class="btn btn-outline-primary btn-sm w-100">View Details & Insights</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-warning text-center">No attractions found in this category.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        var R = 6371;
+        var dLat = (lat2 - lat1) * Math.PI / 180;
+        var dLon = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (R * c).toFixed(1);
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+
+            document.querySelectorAll('.attraction-card').forEach(function(card) {
+                var lat = parseFloat(card.dataset.lat);
+                var lng = parseFloat(card.dataset.lng);
+                var dist = calculateDistance(userLat, userLng, lat, lng);
+                
+                card.querySelector('.card-dist').textContent = dist;
+            });
+        }, function(error) {
+            console.warn("Geolocation permission denied or unavailable.");
+        }, { timeout: 7000 });
+    }
+</script>
+{% endblock %}

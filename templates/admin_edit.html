@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 p-4">
+                <h3 class="fw-bold mb-4">Edit Attraction: {{ attraction.name }}</h3>
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Attraction Name</label>
+                            <input type="text" name="name" value="{{ attraction.name }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select" required>
+                                <option value="Religious" {% if attraction.category == 'Religious' %}selected{% endif %}>Religious</option>
+                                <option value="Nature" {% if attraction.category == 'Nature' %}selected{% endif %}>Nature</option>
+                                <option value="Restaurant" {% if attraction.category == 'Restaurant' %}selected{% endif %}>Restaurant</option>
+                                <option value="Historical" {% if attraction.category == 'Historical' %}selected{% endif %}>Historical</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="3" required>{{ attraction.description }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Opening Hours</label>
+                            <input type="text" name="opening_hours" value="{{ attraction.opening_hours }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Distance (km)</label>
+                            <input type="number" step="0.1" name="distance_km" value="{{ attraction.distance_km }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Best Time to Visit</label>
+                            <input type="text" name="best_time" value="{{ attraction.best_time }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estimated Entry Fee</label>
+                            <input type="text" name="entry_fee" value="{{ attraction.entry_fee }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Operational Status</label>
+                            <select name="status" class="form-select" required>
+                                <option value="Open" {% if attraction.status == 'Open' %}selected{% endif %}>Open</option>
+                                <option value="Temporarily Closed" {% if attraction.status == 'Temporarily Closed' %}selected{% endif %}>Temporarily Closed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Travel Warning</label>
+                            <input type="text" name="warning" value="{{ attraction.warning or '' }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Latitude</label>
+                            <input type="number" step="0.0001" name="latitude" value="{{ attraction.latitude }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Longitude</label>
+                            <input type="number" step="0.0001" name="longitude" value="{{ attraction.longitude }}" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Image URL</label>
+                            <input type="url" name="image_url" value="{{ attraction.image_url }}" class="form-control" required>
+                        </div>
+                        <div class="col-12 text-end mt-4">
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Attraction</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
