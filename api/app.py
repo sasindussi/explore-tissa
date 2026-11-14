@@ -4,19 +4,18 @@ from flask_sqlalchemy import SQLAlchemy
 
 if os.environ.get('VERCEL'):
     db_path = '/tmp/tissa.db'
-    instance_path = '/tmp'
 else:
     db_path = 'tissa.db'
-    instance_path = None
 
 app = Flask(__name__, 
             template_folder='../templates', 
-            static_folder='../static',
-            instance_path=instance_path)
+            static_folder='../static')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key_here'
+
+app.instance_path = '/tmp'
 
 db = SQLAlchemy(app)
 
