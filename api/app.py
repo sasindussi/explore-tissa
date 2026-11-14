@@ -11,18 +11,13 @@ app = Flask(__name__,
             template_folder='../templates', 
             static_folder='../static')
 
+app.instance_path = '/tmp'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {"timeout": 15}
-}
-
-app.instance_path = '/tmp'
-
 db = SQLAlchemy(app)
-
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
