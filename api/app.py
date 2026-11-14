@@ -2,18 +2,22 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
-if os.environ.get('VERCEL'):
-    db_path = '/tmp/tissa.db'
-else:
-    db_path = 'tissa.db'
-
 app = Flask(__name__, 
             template_folder='../templates', 
             static_folder='../static')
 
-app.instance_path = '/tmp'
+database_url = os.environ.get('DATABASE_URL')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+if database_url:
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    DB_USER = 'root'
+    DB_PASSWORD = ''
+    DB_HOST = 'localhost'
+    DB_NAME = 'explore_tissa'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
