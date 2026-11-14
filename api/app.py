@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import import_name 
 import os
 
+
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 if os.environ.get('VERCEL'):
     db_path = '/tmp/tissa.db'
@@ -9,7 +11,6 @@ else:
     db_path = 'tissa.db'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-
 db = SQLAlchemy(app)
 
 # Database Models
