@@ -1,12 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import import_name 
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+
 if os.environ.get('VERCEL'):
     db_path = '/tmp/tissa.db'
 else:
     db_path = 'tissa.db'
+
 app = Flask(__name__, 
             template_folder='../templates', 
             static_folder='../static')
