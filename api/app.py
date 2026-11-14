@@ -1,16 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import import_name 
 import os
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
 
-
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 if os.environ.get('VERCEL'):
+    instance_path = '/tmp'
     db_path = '/tmp/tissa.db'
 else:
+    instance_path = None
     db_path = 'tissa.db'
 
+app = Flask(__name__, 
+            template_folder='../templates', 
+            static_folder='../static',
+            instance_path=instance_path)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+app.config['SECRET_KEY'] = 'your_secret_key'
 db = SQLAlchemy(app)
 
 # Database Models
