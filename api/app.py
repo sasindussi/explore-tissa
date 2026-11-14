@@ -9,7 +9,6 @@ app = Flask(__name__,
 database_url = os.environ.get('DATABASE_URL')
 
 if database_url:
-    
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
     DB_USER = 'root'
@@ -17,7 +16,6 @@ else:
     DB_HOST = 'localhost'
     DB_NAME = 'explore_tissa'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key_here'
 
