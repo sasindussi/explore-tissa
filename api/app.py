@@ -11,13 +11,7 @@ database_url = os.environ.get('DATABASE_URL')
 if database_url:
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    DB_USER = 'root'
-    DB_PASSWORD = ''
-    DB_HOST = 'localhost'
-    DB_NAME = 'explore_tissa'
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'your_secret_key_here'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:sas.2019.2022ok@db.dcwjtblrbybdccvdwajp.supabase.co:5432/postgres'
 
 db = SQLAlchemy(app)
 # Database Models
